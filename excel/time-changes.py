@@ -89,7 +89,7 @@ for (variableIndex, variableName) in enumerate(relevantVariableNames):
 
     # go over all rows, calculate differences between values for the specific variable
     # and finally write the difference values to extra columns, whose headers were already written
-    for (rowIndex, row) in enumerate(rowList[1:len(rowList)-1]):
+    for (rowIndex, row) in enumerate(rowList[1:]):
         difference = calculateVariableDifference(
             relevantVariableCells, row, variableName, firstTimeSpot, lastTimeSpot)
         absoluteDataCell = worksheet.cell(
