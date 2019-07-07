@@ -40,12 +40,21 @@ sheetname = args.sheetname
 filename = args.filename
 timespots = ['Pre', 'Mid', 'Post']
 
-# get excel sheet
+# get excel sheet to read from
 workbook = load_workbook(filename)
-worksheet = workbook.active if sheetname == None else workbook[sheetname]
+readingWorksheet = workbook[workbook.sheetnames[0]
+                            ] if sheetname == None else workbook[sheetname]
+
+# create excel sheet to write to
+newWorksheetName = "Changes over time"
+# remove worksheet, if it already exists
+if newWorksheetName in workbook.sheetnames:
+    workbook.remove(workbook[newWorksheetName])
+# create sheet from scratch
+writingWorksheet = workbook.create_sheet(newWorksheetName)
 
 # get required data
-rowList = list(worksheet.rows)
+rowList = list(readingWorksheet.rows)
 
 # get all variables
 # get all items in the top row
@@ -63,12 +72,14 @@ distinctVariableNames = list(dict.fromkeys(allVariableNames))
 # remove variable names which do not have the appropriate amount of values (--> like amount of time spots)
 relevantVariableNames = list(filter(
     lambda x: allVariableNames.count(x) == len(timespots), distinctVariableNames))
+
 # catch variable names which are not equal for all time spots
 irrelevantVariableNames = [
     x for x in allVariableNames if x not in relevantVariableNames]
-irrelevantVariableNames.sort()
-warnings.warn('The following variables have different names amongst the different time spots:\n\n' +
-              str(irrelevantVariableNames))
+if len(irrelevantVariableNames) > 0:
+    irrelevantVariableNames.sort()
+    warnings.warn('The following variables have different names amongst the different time spots:\n\n' +
+                  str(irrelevantVariableNames))
 
 # go over all relevant variables and calculate differences between first and last timespot
 # then write those differences to the excel file
@@ -77,9 +88,10 @@ firstTimeSpot = timespots[0]
 lastTimeSpot = timespots[2]
 for (variableIndex, variableName) in enumerate(relevantVariableNames):
     # name the headers of the columns appropriately
-    firstColumnNumber = numberOfUsedColumns + 1 + (variableIndex * 2)
-    absoluteHeaderCell = worksheet.cell(row=1, column=firstColumnNumber)
-    relativeHeaderCell = worksheet.cell(row=1, column=firstColumnNumber + 1)
+    firstColumnNumber = 2 + (variableIndex * 2)
+    absoluteHeaderCell = writingWorksheet.cell(row=1, column=firstColumnNumber)
+    relativeHeaderCell = writingWorksheet.cell(
+        row=1, column=firstColumnNumber + 1)
     absoluteHeaderCell.value = "Absolute-" + firstTimeSpot + \
         "-" + lastTimeSpot + "-" + variableName
     relativeHeaderCell.value = "Relative-" + firstTimeSpot + \
@@ -92,9 +104,9 @@ for (variableIndex, variableName) in enumerate(relevantVariableNames):
     for (rowIndex, row) in enumerate(rowList[1:]):
         difference = calculateVariableDifference(
             relevantVariableCells, row, variableName, firstTimeSpot, lastTimeSpot)
-        absoluteDataCell = worksheet.cell(
+        absoluteDataCell = writingWorksheet.cell(
             row=rowIndex + 2, column=firstColumnNumber)
-        relativeDataCell = worksheet.cell(
+        relativeDataCell = writingWorksheet.cell(
             row=rowIndex + 2, column=firstColumnNumber + 1)
         absoluteDataCell.value = difference[0]
         relativeDataCell.value = difference[1]
@@ -102,4 +114,4 @@ for (variableIndex, variableName) in enumerate(relevantVariableNames):
         relativeDataCell.style = '20 % - Accent2'
 
 
-workbook.save(filename + "-timeChanges.xlsx")
+workbook.save(filename)
