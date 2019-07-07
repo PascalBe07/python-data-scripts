@@ -14,10 +14,12 @@ def calculateVariableDifference(relevantVariableCells, dataRow, variableName, fi
                                   and variableName in x.value, relevantVariableCells))[0]
     lastHeaderCell = list(filter(lambda x: str.startswith(x.value, lastTimeSpot + "_")
                                  and variableName in x.value, relevantVariableCells))[0]
-    firstDataCellValue = list(dataRow)[firstHeaderCell.column-1].value
-    lastDataCellValue = list(dataRow)[lastHeaderCell.column-1].value
-    absolutDifference = lastDataCellValue - firstDataCellValue
-    relativeDifference = absolutDifference / firstDataCellValue
+    firstDataCell = list(dataRow)[firstHeaderCell.column-1]
+    lastDataCell = list(dataRow)[lastHeaderCell.column-1]
+    absolutDifference = "=" + createFullCoordinate(lastDataCell, readingWorksheet) + \
+        " - " + createFullCoordinate(firstDataCell, readingWorksheet)
+    relativeDifference = "=" + createFullCoordinate(firstDataCell, readingWorksheet) + \
+        " / " + createFullCoordinate(lastDataCell, readingWorksheet)
 
     # print('##########################################################')
     # print('Printing information about the calculated cell differences')
@@ -46,8 +48,7 @@ timespots = [
     'Pre', 'Mid', 'Post']
 
 # get excel sheet to read from
-workbook = load_workbook(
-    filename)
+workbook = load_workbook(filename, data_only=True)
 readingWorksheet = workbook[workbook.sheetnames[0]
                             ] if sheetname == None else workbook[sheetname]
 
