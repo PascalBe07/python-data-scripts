@@ -5,11 +5,15 @@ from openpyxl import load_workbook
 import warnings
 
 
+def createFullCoordinate(cell, sheet):
+    return "$'" + sheet.title + "'." + cell.coordinate
+
+
 def calculateVariableDifference(relevantVariableCells, dataRow, variableName, firstTimeSpot, lastTimeSpot):
-    firstHeaderCell = list(filter(
-        lambda x: str.startswith(x.value, firstTimeSpot + "_") and variableName in x.value, relevantVariableCells))[0]
-    lastHeaderCell = list(filter(
-        lambda x: str.startswith(x.value, lastTimeSpot + "_") and variableName in x.value, relevantVariableCells))[0]
+    firstHeaderCell = list(filter(lambda x: str.startswith(x.value, firstTimeSpot + "_")
+                                  and variableName in x.value, relevantVariableCells))[0]
+    lastHeaderCell = list(filter(lambda x: str.startswith(x.value, lastTimeSpot + "_")
+                                 and variableName in x.value, relevantVariableCells))[0]
     firstDataCellValue = list(dataRow)[firstHeaderCell.column-1].value
     lastDataCellValue = list(dataRow)[lastHeaderCell.column-1].value
     absolutDifference = lastDataCellValue - firstDataCellValue
@@ -38,15 +42,17 @@ parser.add_argument("-s", "--sheetname", dest="sheetname",
 args = parser.parse_args()
 sheetname = args.sheetname
 filename = args.filename
-timespots = ['Pre', 'Mid', 'Post']
+timespots = [
+    'Pre', 'Mid', 'Post']
 
 # get excel sheet to read from
-workbook = load_workbook(filename)
+workbook = load_workbook(
+    filename)
 readingWorksheet = workbook[workbook.sheetnames[0]
                             ] if sheetname == None else workbook[sheetname]
 
 # create excel sheet to write to
-newWorksheetName = "Changes over time"
+newWorksheetName = "Changes-over-time"
 # remove worksheet, if it already exists
 if newWorksheetName in workbook.sheetnames:
     workbook.remove(workbook[newWorksheetName])
@@ -60,22 +66,18 @@ rowList = list(readingWorksheet.rows)
 # get all items in the top row
 allVariableCells = list(rowList[0])
 # remove empty variables
-notEmptyVariableCells = list(
-    filter(lambda x: x.value != None, allVariableCells))
+notEmptyVariableCells = list(filter(lambda x: x.value != None, allVariableCells))
 # get variables for all required time spots (--> maybe there are additional variables which we do not care about)
-relevantVariableCells = list(filter(lambda x: any(str.startswith(
-    x.value, timespot + "_") for timespot in timespots), notEmptyVariableCells))
+relevantVariableCells = list(filter(lambda x: any(str.startswith(x.value, timespot + "_")
+                                                  for timespot in timespots), notEmptyVariableCells))
 # get distinct variable names (without time spot)
-allVariableNames = list(
-    map(lambda x: x.value.partition('_')[-1], relevantVariableCells))
+allVariableNames = list(map(lambda x: x.value.partition('_')[-1], relevantVariableCells))
 distinctVariableNames = list(dict.fromkeys(allVariableNames))
 # remove variable names which do not have the appropriate amount of values (--> like amount of time spots)
-relevantVariableNames = list(filter(
-    lambda x: allVariableNames.count(x) == len(timespots), distinctVariableNames))
+relevantVariableNames = list(filter(lambda x: allVariableNames.count(x) == len(timespots), distinctVariableNames))
 
 # catch variable names which are not equal for all time spots
-irrelevantVariableNames = [
-    x for x in allVariableNames if x not in relevantVariableNames]
+irrelevantVariableNames = [x for x in allVariableNames if x not in relevantVariableNames]
 if len(irrelevantVariableNames) > 0:
     irrelevantVariableNames.sort()
     warnings.warn('The following variables have different names amongst the different time spots:\n\n' +
@@ -90,24 +92,18 @@ for (variableIndex, variableName) in enumerate(relevantVariableNames):
     # name the headers of the columns appropriately
     firstColumnNumber = 2 + (variableIndex * 2)
     absoluteHeaderCell = writingWorksheet.cell(row=1, column=firstColumnNumber)
-    relativeHeaderCell = writingWorksheet.cell(
-        row=1, column=firstColumnNumber + 1)
-    absoluteHeaderCell.value = "Absolute-" + firstTimeSpot + \
-        "-" + lastTimeSpot + "-" + variableName
-    relativeHeaderCell.value = "Relative-" + firstTimeSpot + \
-        "-" + lastTimeSpot + "-" + variableName
+    relativeHeaderCell = writingWorksheet.cell(row=1, column=firstColumnNumber + 1)
+    absoluteHeaderCell.value = "Absolute-" + firstTimeSpot + "-" + lastTimeSpot + "-" + variableName
+    relativeHeaderCell.value = "Relative-" + firstTimeSpot + "-" + lastTimeSpot + "-" + variableName
     absoluteHeaderCell.style = 'Headline 3'
     relativeHeaderCell.style = 'Headline 3'
 
     # go over all rows, calculate differences between values for the specific variable
     # and finally write the difference values to extra columns, whose headers were already written
     for (rowIndex, row) in enumerate(rowList[1:]):
-        difference = calculateVariableDifference(
-            relevantVariableCells, row, variableName, firstTimeSpot, lastTimeSpot)
-        absoluteDataCell = writingWorksheet.cell(
-            row=rowIndex + 2, column=firstColumnNumber)
-        relativeDataCell = writingWorksheet.cell(
-            row=rowIndex + 2, column=firstColumnNumber + 1)
+        difference = calculateVariableDifference(relevantVariableCells, row, variableName, firstTimeSpot, lastTimeSpot)
+        absoluteDataCell = writingWorksheet.cell(row=rowIndex + 2, column=firstColumnNumber)
+        relativeDataCell = writingWorksheet.cell(row=rowIndex + 2, column=firstColumnNumber + 1)
         absoluteDataCell.value = difference[0]
         relativeDataCell.value = difference[1]
         absoluteDataCell.style = '20 % - Accent1'
