@@ -16,26 +16,33 @@ def calculateVariableDifference(relevantVariableCells, dataRow, variableName, fi
                                  and variableName in x.value, relevantVariableCells))[0]
     firstDataCell = list(dataRow)[firstHeaderCell.column-1]
     lastDataCell = list(dataRow)[lastHeaderCell.column-1]
-    absolutDifference = f"={createFullCoordinate(lastDataCell, readingWorksheet)}-{createFullCoordinate(firstDataCell, readingWorksheet)}"
-    relativeDifference = f"={createFullCoordinate(targetCellAbsolute, writingWorksheet)}/{createFullCoordinate(firstDataCell, readingWorksheet)}"
-    return (absolutDifference, relativeDifference)
+    absoluteDifferenceFormular = f"{createFullCoordinate(lastDataCell, readingWorksheet)}-{createFullCoordinate(firstDataCell, readingWorksheet)}"
+    absolutDifference = f"={absoluteDifferenceFormular}"
+    relativeDifference = f"=({absoluteDifferenceFormular})/{createFullCoordinate(firstDataCell, readingWorksheet)}"
+    return (absolutDifference, relativeDifference, firstDataCell.style)
 
 
 # arguments of the script
 parser = ArgumentParser()
-parser.add_argument("-f", "--file", dest="filename", help="file to read", metavar="FILENAME", default="testfile.xlsx")
+parser.add_argument("-f", "--file", dest="filename", help="file to read",
+                    metavar="FILENAME", default="testfile.xlsx", required=True)
 parser.add_argument("-s", "--sheetname", dest="sheetname", help="sheet to read", metavar="SHEETNAME")
+parser.add_argument("-v", "--values", dest="values", required=True,
+                    help="Which values to generate. Possible options are 'absolute' or 'relative'", metavar="VALUES")
 args = parser.parse_args()
 sheetname = args.sheetname
 filename = args.filename
+# TODO: REFACTOR TO ALLOW ONLY THOSE TWO VALUES
+valuesType = args.values
+isAbsolute = valuesType == 'absolute'
 timespots = ['Pre', 'Mid', 'Post']
 
 # get excel sheet to read from
-workbook = load_workbook(filename, data_only=True)
+workbook = load_workbook(filename)
 readingWorksheet = workbook[workbook.sheetnames[0]] if sheetname == None else workbook[sheetname]
 
 # create excel sheet to write to
-newWorksheetName = "Changes-over-time"
+newWorksheetName = f"{valuesType}-changes-over-time"
 # remove worksheet, if it already exists
 if newWorksheetName in workbook.sheetnames:
     workbook.remove(workbook[newWorksheetName])
@@ -73,25 +80,19 @@ firstTimeSpot = timespots[0]
 lastTimeSpot = timespots[2]
 for (variableIndex, variableName) in enumerate(relevantVariableNames):
     # name the headers of the columns appropriately
-    firstColumnNumber = 2 + (variableIndex * 2)
-    absoluteHeaderCell = writingWorksheet.cell(row=1, column=firstColumnNumber)
-    relativeHeaderCell = writingWorksheet.cell(row=1, column=firstColumnNumber + 1)
-    absoluteHeaderCell.value = f"Absolute-{firstTimeSpot}-{lastTimeSpot}-{variableName}"
-    relativeHeaderCell.value = f"Relative-{firstTimeSpot}-{lastTimeSpot}-{variableName}"
-    absoluteHeaderCell.style = 'Headline 3'
-    relativeHeaderCell.style = 'Headline 3'
+    firstColumnNumber = 2 + variableIndex
+    headerCell = writingWorksheet.cell(row=1, column=firstColumnNumber)
+    headerCell.value = f"{valuesType}-{firstTimeSpot}-{lastTimeSpot}-{variableName}"
+    headerCell.style = 'Headline 3'
 
     # go over all rows, calculate differences between values for the specific variable
     # and finally write the difference values to extra columns, whose headers were already written
     for (rowIndex, row) in enumerate(rowList[1:]):
-        absoluteDataCell = writingWorksheet.cell(row=rowIndex + 2, column=firstColumnNumber)
-        relativeDataCell = writingWorksheet.cell(row=rowIndex + 2, column=firstColumnNumber + 1)
+        dataCell = writingWorksheet.cell(row=rowIndex + 2, column=firstColumnNumber)
         difference = calculateVariableDifference(
-            relevantVariableCells, row, variableName, firstTimeSpot, lastTimeSpot, absoluteDataCell)
-        absoluteDataCell.value = difference[0]
-        relativeDataCell.value = difference[1]
-        absoluteDataCell.style = '20 % - Accent1'
-        relativeDataCell.style = '20 % - Accent2'
+            relevantVariableCells, row, variableName, firstTimeSpot, lastTimeSpot, dataCell)
+        dataCell.value = difference[0] if isAbsolute else difference[1]
+        dataCell.style = difference[2]
 
 
 workbook.save(filename)
