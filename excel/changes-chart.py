@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
-from openpyxl import load_workbook
+from openpyxl import (load_workbook, styles)
 from openpyxl.chart import (LineChart, Reference)
 
 # arguments of the script
@@ -55,16 +55,22 @@ c1.title = "Relative Changes as chart"
 c1.style = 13
 c1.y_axis.title = "Relative Change"
 c1.x_axis.title = "Time"
+c1.x_axis.tickLblPos = "low"
 data = Reference(writingWorksheet, min_col=2, min_row=1, max_col=columnNumber+1, max_row=3)
 c1.add_data(data, titles_from_data=True)
 
 
+# x axis naming
+timings = Reference(writingWorksheet, min_row=2, max_row=3, min_col=1, max_col=1)
+c1.set_categories(timings)
+
 # color each line within the chart looking at the value
 for (index, column) in enumerate(headerRow):
     line = c1.series[index]
-    line.graphicalProperties.line.width = 100
-    color = column.fill.start_color.index
-    line.graphicalProperties.line.solidFill = color
+    line.graphicalProperties.line.width = 300
+    colorCode = dataRow[index].fill.start_color.index
+    hexCode = str(styles.colors.COLOR_INDEX[colorCode])[2:]
+    line.graphicalProperties.line.solidFill = hexCode
 
 writingWorksheet.add_chart(c1, "A5")
 
