@@ -18,7 +18,7 @@ args = parser.parse_args()
 
 projectId = 'nkk%2F' + args.project
 endpoint = 'http://' + args.servername + '/api/v4/projects/' + projectId + '/merge_requests'
-header = { 'PRIVATE-TOKEN': args.token }
+header = {'PRIVATE-TOKEN': args.token}
 jsonData = {
     'id': projectId,
     'source_branch': args.sourcebranch,
@@ -27,5 +27,8 @@ jsonData = {
     'remove_source_branch': 'true'
 }
 response = requests.post(endpoint, json=jsonData, headers=header)
-print(response.status_code)
-print(response.json())
+if response.status_code != 201:
+    print(response.status_code)
+    print(response.json())
+else:
+    print(response.json()['web_url'])
