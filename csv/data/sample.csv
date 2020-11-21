@@ -1,0 +1,7 @@
+Login email,Identifier,One-time password,Recovery code,First name,Last name,Department,Location,Time,T1,T2,T3
+a,9012,12se74,rb9012,Rachel,Booker,Sales,Manchester,T3,T1a,T2a,T3a
+a,2070,04ap67,lg2070,Laura,Grey,Depot,London,T2,"","",
+a,4081,30no86,cj4081,Craig,Johnson,Depot,London,T1,"","",
+b,9346,14ju73,mj9346,Mary,Jenkins,Engineering,Manchester,T3,T1b,T2b,T3b
+b,5023,09ja61,js5079,Jamie,Smith,Engineering,Manchester,T2,"","",""
+b,5024,"","","","","","",T1,"","",""
