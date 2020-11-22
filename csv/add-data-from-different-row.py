@@ -4,12 +4,11 @@ from argparse import ArgumentParser
 import json
 
 existing_filename = "sample.csv"
-new_filename = "new" + existing_filename
+new_filename = "new." + existing_filename
 
 id_field = "record_id"
 time_field = "time"
 new_field = "age"
-
 specific_time_fields = ["T1", "T2", "T3"]
 
 all_entities = {}
