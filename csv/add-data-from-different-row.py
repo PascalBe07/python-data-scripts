@@ -4,11 +4,11 @@ from argparse import ArgumentParser
 import json
 
 existing_filename = "sample.csv"
-new_filename = "new.sample.csv"
+new_filename = "new" + existing_filename
 
-id_field = "Login email"
-time_field = "Time"
-new_field = "Age"
+id_field = "record_id"
+time_field = "time"
+new_field = "age"
 
 specific_time_fields = ["T1", "T2", "T3"]
 
@@ -48,7 +48,10 @@ with open(new_filename, 'w') as f2:
     for row in all_rows:
         id_value = row[id_field]
         time_value = row[time_field]
-        row[new_field] = all_entities[id_value][time_value]
+        if time_value in all_entities[id_value]:
+            row[new_field] = all_entities[id_value][time_value]
+        else:
+            print("No " + time_value + " for " + id_value)
 
         for specific_time_field in specific_time_fields:
             del row[specific_time_field]
