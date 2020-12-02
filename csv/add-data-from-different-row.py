@@ -34,7 +34,7 @@ with open(existing_filename, "r") as f:
                 all_entities[id_value][specific_time_field] = row[specific_time_field]
 
 
-with open(new_filename, 'w') as f2:
+with open(new_filename, 'w', newline='') as f2:
     newFieldnames = reader.fieldnames
     newFieldnames.append(new_field)
 

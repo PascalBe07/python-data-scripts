@@ -67,7 +67,7 @@ with open(existing_filename, "r") as f:
         all_rows.append(row)
 
 if not check_only:
-    with open(new_filename, "w") as f2:
+    with open(new_filename, "w", newline='') as f2:
         writer = csv.DictWriter(f2, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerow(second_row)

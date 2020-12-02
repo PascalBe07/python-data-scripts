@@ -30,7 +30,7 @@ with open(existing_filename, "r") as f:
         all_rows.append(row)
 
 
-with open(new_filename, 'w') as f2:
+with open(new_filename, 'w', newline='') as f2:
     extra_fieldnames = []
 
     for key, value in generic_columns.items():
